@@ -85,10 +85,13 @@ public class TaricChooser extends JDialog {
     }
 
     private void runTaric() {
+        final String date = dateEntryField.getText();
+        String chapter_text = chapterEntry.getText();
+        final int chapter = Integer.parseInt( chapter_text );
         SwingWorker<Boolean, Object> worker = new SwingWorker<Boolean, Object>() {
             public Boolean doInBackground() {
                 ChapterFetch fetch = new ChapterFetch();
-                String data = fetch.fetch(dateEntryField.getText(), Integer.getInteger(chapterEntry.getText()));
+                String data = fetch.fetch( date, chapter);
                 updateStatus(33);
                 ChapterTransformer transformer = new ChapterTransformer();
                 JSReader reader = new JSReader();
