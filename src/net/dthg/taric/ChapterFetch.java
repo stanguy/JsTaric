@@ -17,7 +17,7 @@ public class ChapterFetch {
 
             // read the output from the server
             BufferedReader reader = new BufferedReader( new InputStreamReader(
-                    conn.getInputStream() ) );
+                    conn.getInputStream(), "UTF-8" ) );
             StringBuilder stringBuilder = new StringBuilder();
 
             String line = null;

@@ -1,28 +1,34 @@
 package net.dthg.taric;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
 import org.mozilla.javascript.Scriptable;
 
 public class ChapterTransformer {
 
-    public String transform( NativeArray array ) {
+    public void transform( PrintStream ps, NativeArray array ) {
         if( null == array ) {
-            return "";
+            return;
         }
-        StringBuffer sb = new StringBuffer();
         for( Object o: array.getIds() ) {
             Integer i = (Integer)o;
             NativeArray subarr = (NativeArray)array.get( i, null );
-            sb.append( Context.toString( subarr.get( 2, null ) ) )
-              .append( ';' )
-              .append( Context.toString( subarr.get( 5, null ) ) )
-              .append( "\n" );
+            ps.print( Context.toString( subarr.get( 2, null ) ) );
+            ps.print( ';' );
+            ps.println( Context.toString( subarr.get( 5, null ) ) );
             Object next_array = subarr.get( 7, null );
             if( Scriptable.NOT_FOUND != next_array && null != next_array ) {
-                sb.append(  this.transform( (NativeArray)next_array ) );
+                this.transform( ps, (NativeArray)next_array );
             }
         }
-        return sb.toString();
+    }
+    public String transform( NativeArray array ) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream( baos );
+        transform( ps, array );
+        return baos.toString();
     }
 }

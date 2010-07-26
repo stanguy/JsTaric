@@ -1,0 +1,7 @@
+h1. JsTaric
+
+This software fetches data from the official TARIC code website[1] and can be used to transform those into a form more suitable to be used, for example, by an ERP.
+
+If you have any use for this software, please don't forget to ask the people behind the TARIC website to put out an official channel (web service or static export) to fetch those data instead of using a loop in the website.
+
+  [1] http://ec.europa.eu/taxation_customs/dds2/taric/taric_consultation.jsp 

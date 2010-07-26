@@ -5,9 +5,7 @@ import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mozilla.javascript.Context;
 import org.mozilla.javascript.NativeArray;
-import org.mozilla.javascript.Scriptable;
 
 public class ChapterTransformerTest {
 
