@@ -17,13 +17,14 @@ public class ChapterFetchTest {
 
         private HttpURLConnection mock_;
         
+        public MockedChapterFetch( String d, int c ) { super(d,c); }
         
         public void setMock( HttpURLConnection mock ) {
             this.mock_ = mock;
         }
 
         @Override
-        public HttpURLConnection getConnection(String date, int chapter) {
+        public HttpURLConnection getConnection() {
             return this.mock_;
         }
         
@@ -44,9 +45,9 @@ public class ChapterFetchTest {
             when(conn.getInputStream()).thenReturn( bs );
         } catch ( IOException e ) {}
         
-        MockedChapterFetch fetcher = new MockedChapterFetch();
+        MockedChapterFetch fetcher = new MockedChapterFetch( "20100720", 3 );
         fetcher.setMock( conn );
-        String str = fetcher.fetch( "20100720", 3 );
+        String str = fetcher.fetch( );
         Assert.assertEquals( jscode + "\n", str );
     }
 

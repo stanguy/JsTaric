@@ -19,9 +19,9 @@ public class Taric {
     }
     
     protected void run() {
-        ChapterFetch fetch = new ChapterFetch();
         String default_date = getDefaultDate();
-        String data = fetch.fetch( default_date, 1 );
+        ChapterFetch fetch = new ChapterFetch( default_date, 1 );
+        String data = fetch.fetch();
         ChapterTransformer transformer = new ChapterTransformer();
         JSReader reader = new JSReader();
         Object na = reader.interpretAndFetch( data, "chaptertree" );

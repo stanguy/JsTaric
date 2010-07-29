@@ -36,7 +36,7 @@ public class ChapterTransformerTest {
     public void doubleLevel() {
 
         String[] data =  { "false", "0", "01000000", "80", "0", "LIVE ANIMALS", null, null };
-        NativeArray na = new NativeArray(7);
+        NativeArray na = new NativeArray(data.length+1);
         for ( int i = 0; i < data.length; i++ ) {
             na.put(  i, na, data[i] );
         }

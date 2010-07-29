@@ -90,8 +90,8 @@ public class TaricChooser extends JDialog {
         final int chapter = Integer.parseInt( chapter_text );
         SwingWorker<Boolean, Object> worker = new SwingWorker<Boolean, Object>() {
             public Boolean doInBackground() {
-                ChapterFetch fetch = new ChapterFetch();
-                String data = fetch.fetch( date, chapter);
+                ChapterFetch fetch = new ChapterFetch( date, chapter );
+                String data = fetch.fetch();
                 updateStatus(33);
                 ChapterTransformer transformer = new ChapterTransformer();
                 JSReader reader = new JSReader();
