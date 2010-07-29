@@ -7,16 +7,19 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.Iterator;
 
 public class TaricChooser extends JDialog {
     private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
     private JTextField dateEntryField;
-    private JTextField chapterEntry;
     private JButton selectFileButton;
     private JLabel filenameDisplay;
     private JProgressBar progressBar1;
+    private JButton retrieveButton;
+    private JComboBox sectionCombo;
+    private JComboBox chapterCombo;
     private File outputFile;
 
     public TaricChooser() {
@@ -67,6 +70,60 @@ public class TaricChooser extends JDialog {
                 System.out.println(e.getID());
             }
         });
+        retrieveButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                onRetrieve();
+            }
+        });
+        sectionCombo.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                onSelectSection();
+            }
+        });
+    }
+
+    private void onSelectSection() {
+        Object o = sectionCombo.getSelectedItem();
+        chapterCombo.removeAllItems();
+        if (null != o) {
+            Section s = (Section) o;
+            for (Iterator i = s.getChapters().iterator(); i.hasNext();) {
+                Chapter chapter = (Chapter) i.next();
+                chapterCombo.addItem(chapter);
+            }
+        }
+        pack();
+    }
+
+    private void onRetrieve() {
+        progressBar1.setEnabled(true);
+        progressBar1.setValue(0);
+        final String date = dateEntryField.getText();
+        SwingWorker<Boolean, Object> worker = new SwingWorker<Boolean, Object>() {
+            public Boolean doInBackground() {
+                SectionsFetch fetch = new SectionsFetch(date);
+                String data = fetch.fetch();
+                updateStatus(33);
+                SectionTransformer transformer = new SectionTransformer();
+                JSReader reader = new JSReader();
+                Object na = reader.interpretAndFetch(data, "sectiontree");
+                updateStatus(66);
+                java.util.List<Section> list = transformer.transform((NativeArray) na);
+                sectionCombo.removeAllItems();
+                for (Iterator i = list.iterator(); i.hasNext();) {
+                    Section section = (Section) i.next();
+                    sectionCombo.addItem(section);
+                }
+                return true;
+            }
+
+            public void done() {
+                pack();
+                progressBar1.setValue(0);
+                progressBar1.setEnabled(false);
+            }
+        };
+        worker.execute();
     }
 
 
@@ -86,11 +143,10 @@ public class TaricChooser extends JDialog {
 
     private void runTaric() {
         final String date = dateEntryField.getText();
-        String chapter_text = chapterEntry.getText();
-        final int chapter = Integer.parseInt( chapter_text );
+        final int chapter = ((Chapter) chapterCombo.getSelectedItem()).getCode();
         SwingWorker<Boolean, Object> worker = new SwingWorker<Boolean, Object>() {
             public Boolean doInBackground() {
-                ChapterFetch fetch = new ChapterFetch( date, chapter );
+                ChapterFetch fetch = new ChapterFetch(date, chapter);
                 String data = fetch.fetch();
                 updateStatus(33);
                 ChapterTransformer transformer = new ChapterTransformer();
@@ -122,7 +178,6 @@ public class TaricChooser extends JDialog {
         for (int i = 1; i <= 21; ++i) {
             sections[i - 1] = Integer.toString(i);
         }
-        chapterEntry = new JTextField("1", 3);
         dateEntryField = new JTextField(Taric.getDefaultDate(), 8);
     }
 
@@ -156,10 +211,10 @@ public class TaricChooser extends JDialog {
         panel1.add(panel2, gbc);
         buttonOK = new JButton();
         buttonOK.setEnabled(false);
-        buttonOK.setText("OK");
+        buttonOK.setText("Run");
         panel2.add(buttonOK);
         buttonCancel = new JButton();
-        buttonCancel.setText("Cancel");
+        buttonCancel.setText("Exit");
         panel2.add(buttonCancel);
         progressBar1 = new JProgressBar();
         progressBar1.setEnabled(false);
@@ -179,51 +234,38 @@ public class TaricChooser extends JDialog {
         gbc.fill = GridBagConstraints.BOTH;
         contentPane.add(panel3, gbc);
         final JLabel label1 = new JLabel();
-        label1.setText("Date (YYYYmmdd)");
+        label1.setText("Date");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 0;
+        gbc.gridy = 4;
         gbc.anchor = GridBagConstraints.WEST;
         panel3.add(label1, gbc);
         final JLabel label2 = new JLabel();
-        label2.setText("Chapter");
-        gbc = new GridBagConstraints();
-        gbc.gridx = 4;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        panel3.add(label2, gbc);
-        chapterEntry.setHorizontalAlignment(4);
-        gbc = new GridBagConstraints();
-        gbc.gridx = 6;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel3.add(chapterEntry, gbc);
-        final JLabel label3 = new JLabel();
-        label3.setText("Output file");
+        label2.setText("Output file");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 7;
         gbc.anchor = GridBagConstraints.WEST;
-        panel3.add(label3, gbc);
+        panel3.add(label2, gbc);
         filenameDisplay = new JLabel();
         filenameDisplay.setText("(no file selected)");
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
-        gbc.gridy = 3;
+        gbc.gridy = 7;
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         panel3.add(filenameDisplay, gbc);
         selectFileButton = new JButton();
         selectFileButton.setText("Select file...");
         gbc = new GridBagConstraints();
-        gbc.gridx = 4;
-        gbc.gridy = 3;
-        gbc.gridwidth = 3;
+        gbc.gridx = 5;
+        gbc.gridy = 7;
+        gbc.gridwidth = 4;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel3.add(selectFileButton, gbc);
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
-        gbc.gridy = 0;
+        gbc.gridy = 4;
         gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -231,57 +273,107 @@ public class TaricChooser extends JDialog {
         final JPanel spacer1 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
-        gbc.gridy = 0;
+        gbc.gridy = 4;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         panel3.add(spacer1, gbc);
         final JPanel spacer2 = new JPanel();
         gbc = new GridBagConstraints();
-        gbc.gridx = 3;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridx = 2;
+        gbc.gridy = 5;
+        gbc.fill = GridBagConstraints.VERTICAL;
         panel3.add(spacer2, gbc);
         final JPanel spacer3 = new JPanel();
         gbc = new GridBagConstraints();
-        gbc.gridx = 5;
+        gbc.gridx = 8;
+        gbc.gridy = 8;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        panel3.add(spacer3, gbc);
+        final JLabel label3 = new JLabel();
+        label3.setText("Section");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel3.add(label3, gbc);
+        final JLabel label4 = new JLabel();
+        label4.setText("Chapter");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel3.add(label4, gbc);
+        retrieveButton = new JButton();
+        retrieveButton.setText("Retrieve");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 8;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel3.add(spacer3, gbc);
-        final JPanel spacer4 = new JPanel();
+        panel3.add(retrieveButton, gbc);
+        sectionCombo = new JComboBox();
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
-        gbc.gridy = 1;
-        gbc.fill = GridBagConstraints.VERTICAL;
+        gbc.gridy = 0;
+        gbc.gridwidth = 5;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel3.add(sectionCombo, gbc);
+        chapterCombo = new JComboBox();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 2;
+        gbc.gridy = 2;
+        gbc.gridwidth = 5;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel3.add(chapterCombo, gbc);
+        final JLabel label5 = new JLabel();
+        label5.setText("(YYYYmmdd)");
+        gbc = new GridBagConstraints();
+        gbc.gridx = 8;
+        gbc.gridy = 4;
+        gbc.anchor = GridBagConstraints.WEST;
+        panel3.add(label5, gbc);
+        final JPanel spacer4 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 7;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         panel3.add(spacer4, gbc);
         final JPanel spacer5 = new JPanel();
         gbc = new GridBagConstraints();
-        gbc.gridx = 6;
-        gbc.gridy = 4;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
         gbc.fill = GridBagConstraints.VERTICAL;
         panel3.add(spacer5, gbc);
         final JPanel spacer6 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        contentPane.add(spacer6, gbc);
+        gbc.fill = GridBagConstraints.VERTICAL;
+        panel3.add(spacer6, gbc);
         final JPanel spacer7 = new JPanel();
+        gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        contentPane.add(spacer7, gbc);
+        final JPanel spacer8 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.VERTICAL;
-        contentPane.add(spacer7, gbc);
-        final JPanel spacer8 = new JPanel();
+        contentPane.add(spacer8, gbc);
+        final JPanel spacer9 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        contentPane.add(spacer8, gbc);
-        final JPanel spacer9 = new JPanel();
+        contentPane.add(spacer9, gbc);
+        final JPanel spacer10 = new JPanel();
         gbc = new GridBagConstraints();
         gbc.gridx = 1;
         gbc.gridy = 3;
         gbc.fill = GridBagConstraints.VERTICAL;
-        contentPane.add(spacer9, gbc);
+        contentPane.add(spacer10, gbc);
     }
 
     /**

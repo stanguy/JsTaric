@@ -10,7 +10,11 @@ public class Section {
         return title;
     }
     public void setTitle( String title ) {
-        this.title = title;
+        if( title.length() > 40 ) {
+            this.title = title.substring( 0, 40 ) + "...";
+        } else {
+            this.title = title;
+        }
     }
     public List< Chapter > getChapters() {
         return chapters;

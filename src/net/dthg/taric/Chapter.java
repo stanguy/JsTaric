@@ -6,7 +6,11 @@ public class Chapter {
         return title;
     }
     public void setTitle( String title ) {
-        this.title = title;
+        if( title.length() > 40 ) {
+            this.title = title.substring( 0, 40 ) + "...";
+        } else {
+            this.title = title;
+        }
     }
     public int getCode() {
         return code;

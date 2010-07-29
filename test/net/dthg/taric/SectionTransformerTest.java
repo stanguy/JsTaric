@@ -34,9 +34,25 @@ public class SectionTransformerTest {
         List<Section> l = st.transform( na_wrap );
         Assert.assertNotNull( l );
         Assert.assertEquals( 1, l.size() );
-        Assert.assertEquals( data[1] + data[2], l.get( 0 ).getTitle() );
+        Assert.assertEquals( data[1] + " " + data[2], l.get( 0 ).getTitle() );
         Assert.assertNull( l.get( 0 ).getChapters() );
     }
+
+    @Test
+    public void testTransformWithLongTitle() {
+        String[] data =  { "true", "Section I", "Live animals; animal products and stuff", null };
+        NativeArray na = new NativeArray( data );
+        NativeArray na_wrap = new NativeArray( 1 );
+        na_wrap.put(  0, na_wrap, na );
+        List<Section> l = st.transform( na_wrap );
+        Assert.assertNotNull( l );
+        Assert.assertEquals( 1, l.size() );
+        String title = (data[1] + " " + data[2]).substring( 0, 40 ) + "...";
+        
+        Assert.assertEquals( title, l.get( 0 ).getTitle() );
+        Assert.assertNull( l.get( 0 ).getChapters() );
+    }
+    
     
     @Test
     public void transformWithChapters() {
@@ -61,10 +77,10 @@ public class SectionTransformerTest {
         List<Section> l = st.transform( na_wrap );
         Assert.assertNotNull( l );
         Assert.assertEquals( 1, l.size() );
-        Assert.assertEquals( data[1] + data[2], l.get( 0 ).getTitle() );
+        Assert.assertEquals( data[1] + " " + data[2], l.get( 0 ).getTitle() );
         Assert.assertEquals( 1, l.get( 0 ).getChapters().size() );
         Chapter first_chapter = l.get( 0 ).getChapters().get( 0 );
-        Assert.assertEquals( data_chapter[1] + data_chapter[2], first_chapter.getTitle() );
+        Assert.assertEquals( data_chapter[1] + " " + data_chapter[2], first_chapter.getTitle() );
         Assert.assertEquals( 1, first_chapter.getCode() );
     }
 

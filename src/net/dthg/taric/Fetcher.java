@@ -28,7 +28,7 @@ public abstract class Fetcher {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        return "";
+        return null;
     }
     public HttpURLConnection getConnection() {
         URL remote;
