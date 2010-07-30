@@ -8,6 +8,8 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TaricChooser extends JDialog {
     private JPanel contentPane;
@@ -21,6 +23,7 @@ public class TaricChooser extends JDialog {
     private JComboBox sectionCombo;
     private JComboBox chapterCombo;
     private File outputFile;
+    private String error;
 
     public TaricChooser() {
         $$$setupUI$$$();
@@ -80,6 +83,7 @@ public class TaricChooser extends JDialog {
                 onSelectSection();
             }
         });
+        error = new String();
     }
 
     private void onSelectSection() {
@@ -96,18 +100,30 @@ public class TaricChooser extends JDialog {
     }
 
     private void onRetrieve() {
+        final String date = dateEntryField.getText();
+        if( ! isDateCorrectlyFormatted( date ) ) {
+            JOptionPane.showMessageDialog(this, "Incorrect date format (YYYYmmdd expected)", "Taric error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         progressBar1.setEnabled(true);
         progressBar1.setValue(0);
-        final String date = dateEntryField.getText();
         SwingWorker<Boolean, Object> worker = new SwingWorker<Boolean, Object>() {
             public Boolean doInBackground() {
                 SectionsFetch fetch = new SectionsFetch(date);
                 String data = fetch.fetch();
                 updateStatus(33);
+                if (null == data || data.isEmpty()) {
+                    error = "Unable to fetch section data from server";
+                    return false;
+                }
                 SectionTransformer transformer = new SectionTransformer();
                 JSReader reader = new JSReader();
                 Object na = reader.interpretAndFetch(data, "sectiontree");
                 updateStatus(66);
+                if (null == na) {
+                    error = "Unable to correctly interpret data";
+                    return false;
+                }
                 java.util.List<Section> list = transformer.transform((NativeArray) na);
                 sectionCombo.removeAllItems();
                 for (Iterator i = list.iterator(); i.hasNext();) {
@@ -118,9 +134,11 @@ public class TaricChooser extends JDialog {
             }
 
             public void done() {
+                checkError();
                 pack();
                 progressBar1.setValue(0);
                 progressBar1.setEnabled(false);
+                retrieveButton.setEnabled(false);
             }
         };
         worker.execute();
@@ -143,16 +161,28 @@ public class TaricChooser extends JDialog {
 
     private void runTaric() {
         final String date = dateEntryField.getText();
+        if( ! isDateCorrectlyFormatted( date ) ) {
+            JOptionPane.showMessageDialog(this, "Incorrect date format (YYYYmmdd expected)", "Taric error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         final int chapter = ((Chapter) chapterCombo.getSelectedItem()).getCode();
         SwingWorker<Boolean, Object> worker = new SwingWorker<Boolean, Object>() {
             public Boolean doInBackground() {
                 ChapterFetch fetch = new ChapterFetch(date, chapter);
                 String data = fetch.fetch();
                 updateStatus(33);
+                if (null == data || data.isEmpty()) {
+                    error = "Unable to fetch chapter data from server";
+                    return false;
+                }
                 ChapterTransformer transformer = new ChapterTransformer();
                 JSReader reader = new JSReader();
                 Object na = reader.interpretAndFetch(data, "chaptertree");
                 updateStatus(66);
+                if (null == na) {
+                    error = "Unable to correctly interpret chapter data";
+                    return false;
+                }
                 try {
                     transformer.transform(new PrintStream(outputFile, "UTF-8"), (NativeArray) na);
                 } catch (Exception e) {
@@ -163,14 +193,46 @@ public class TaricChooser extends JDialog {
             }
 
             protected void done() {
-                dispose();
+                checkError();
             }
         };
         worker.execute();
     }
 
+    public static boolean isDateCorrectlyFormatted(String date) {
+        if( null == date || date.isEmpty() ) {
+            return false;
+        }
+        Pattern p = Pattern.compile( "^(\\d{4})(\\d{2})(\\d{2})$" );
+        Matcher m = p.matcher( date );
+        if( m.matches() ) {
+            int year = Integer.parseInt( m.group( 1 ) );
+            int month = Integer.parseInt( m.group( 2 ) );
+            int day = Integer.parseInt( m.group( 3 ) );
+            // we could try to validate with a calendar, but what the hell?
+            if( year < 2000 || year > 2050 ) { // Y2050 bug ahead \o/
+                return false;
+            }
+            if( month < 1 || month > 12 ) {
+                return false;
+            }
+            if( day < 1 || day > 31 ) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
     private void onCancel() {
         dispose();
+    }
+
+    private void checkError() {
+        if (!error.isEmpty()) {
+            JOptionPane.showMessageDialog(this, error, "Taric retrieval error", JOptionPane.ERROR_MESSAGE);
+            dispose();
+        }
     }
 
     private void createUIComponents() {
