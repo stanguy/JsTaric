@@ -10,7 +10,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.PrintStream;
-import java.util.Iterator;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,20 +62,7 @@ public class TaricChooser extends JDialog {
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
         selectFileButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                final JFileChooser chooser = new JFileChooser();
-                int ret = chooser.showSaveDialog(contentPane);
-                if (JFileChooser.APPROVE_OPTION == ret) {
-                    outputFile = chooser.getSelectedFile();
-                    if( outputFile.exists() ) {
-                        ret = JOptionPane.showConfirmDialog( null, "Selected file already exists. Overwrite?" );
-                        if( ret != JOptionPane.OK_OPTION ) {
-                            outputFile = null;
-                            return;
-                        }
-                    }
-                    filenameDisplay.setText(outputFile.getPath());
-                    buttonOK.setEnabled(true);
-                }
+                onSelectFile();
             }
         });
         retrieveButton.addActionListener(new ActionListener() {
@@ -467,5 +453,28 @@ public class TaricChooser extends JDialog {
      */
     public JComponent $$$getRootComponent$$$() {
         return contentPane;
+    }
+
+    private void onSelectFile() {
+        final JFileChooser chooser = new JFileChooser();
+        int ret = chooser.showSaveDialog(contentPane);
+        if (JFileChooser.APPROVE_OPTION == ret) {
+            outputFile = chooser.getSelectedFile();
+            
+            String filename = outputFile.getName();
+            if ( ! filename.toLowerCase().endsWith( ".csv" ) ) {
+                outputFile = new File( outputFile.getParentFile(), filename + ".csv" );
+            }
+            
+            if( outputFile.exists() ) {
+                ret = JOptionPane.showConfirmDialog( null, "Selected file already exists. Overwrite?" );
+                if( ret != JOptionPane.OK_OPTION ) {
+                    outputFile = null;
+                    return;
+                }
+            }
+            filenameDisplay.setText(outputFile.getPath());
+            buttonOK.setEnabled(true);
+        }
     }
 }
