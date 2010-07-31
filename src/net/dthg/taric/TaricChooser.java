@@ -3,11 +3,15 @@ package net.dthg.taric;
 import org.mozilla.javascript.NativeArray;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.PrintStream;
 import java.util.Iterator;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,8 +24,8 @@ public class TaricChooser extends JDialog {
     private JLabel filenameDisplay;
     private JProgressBar progressBar1;
     private JButton retrieveButton;
-    private JComboBox sectionCombo;
-    private JComboBox chapterCombo;
+    private JList sectionList;
+    private JList chapterList;
     private File outputFile;
     private String error;
 
@@ -78,8 +82,8 @@ public class TaricChooser extends JDialog {
                 onRetrieve();
             }
         });
-        sectionCombo.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+        sectionList.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
                 onSelectSection();
             }
         });
@@ -87,14 +91,14 @@ public class TaricChooser extends JDialog {
     }
 
     private void onSelectSection() {
-        Object o = sectionCombo.getSelectedItem();
-        chapterCombo.removeAllItems();
-        if (null != o) {
-            Section s = (Section) o;
-            for (Iterator i = s.getChapters().iterator(); i.hasNext();) {
-                Chapter chapter = (Chapter) i.next();
-                chapterCombo.addItem(chapter);
+        Object[] o = sectionList.getSelectedValues();
+        if (null != o && o.length > 0 ) {
+            Vector<Chapter> chapters = new Vector<Chapter>();
+            for ( int i = 0; i < o.length; i++ ) {
+                Section s = (Section) o[i];
+                chapters.addAll( s.getChapters() );
             }
+            chapterList.setListData( chapters );
         }
         pack();
     }
@@ -125,11 +129,7 @@ public class TaricChooser extends JDialog {
                     return false;
                 }
                 java.util.List<Section> list = transformer.transform((NativeArray) na);
-                sectionCombo.removeAllItems();
-                for (Iterator i = list.iterator(); i.hasNext();) {
-                    Section section = (Section) i.next();
-                    sectionCombo.addItem(section);
-                }
+                sectionList.setListData( list.toArray() );
                 return true;
             }
 
@@ -165,30 +165,41 @@ public class TaricChooser extends JDialog {
             JOptionPane.showMessageDialog(this, "Incorrect date format (YYYYmmdd expected)", "Taric error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        final int chapter = ((Chapter) chapterCombo.getSelectedItem()).getCode();
+        Object[] selected_chapters = chapterList.getSelectedValues();
+        if( null == selected_chapters || 0 == selected_chapters.length ) {
+            return;
+        }
+        final int[] chapter = new int[selected_chapters.length];
+        for ( int i = 0; i < chapter.length; i++ ) {
+            chapter[i] = ((Chapter)selected_chapters[i]).getCode();
+        }
         SwingWorker<Boolean, Object> worker = new SwingWorker<Boolean, Object>() {
             public Boolean doInBackground() {
-                ChapterFetch fetch = new ChapterFetch(date, chapter);
-                String data = fetch.fetch();
-                updateStatus(33);
-                if (null == data || data.isEmpty()) {
-                    error = "Unable to fetch chapter data from server";
-                    return false;
-                }
-                ChapterTransformer transformer = new ChapterTransformer();
-                JSReader reader = new JSReader();
-                Object na = reader.interpretAndFetch(data, "chaptertree");
-                updateStatus(66);
-                if (null == na) {
-                    error = "Unable to correctly interpret chapter data";
-                    return false;
-                }
                 try {
-                    transformer.transform(new PrintStream(outputFile, "UTF-8"), (NativeArray) na);
+                    PrintStream ps = new PrintStream( outputFile, "UTF-8" );
+                    double frac = 100.0 / chapter.length ;
+                    for ( int i = 0; i < chapter.length; i++ ) {
+                        ChapterFetch fetch = new ChapterFetch(date, chapter[i] );
+                        String data = fetch.fetch();
+                        updateStatus( (int)( i*frac + frac / 3 ) );
+                        if (null == data || data.isEmpty()) {
+                            error = "Unable to fetch chapter data from server";
+                            return false;
+                        }
+                        ChapterTransformer transformer = new ChapterTransformer();
+                        JSReader reader = new JSReader();
+                        Object na = reader.interpretAndFetch(data, "chaptertree");
+                        updateStatus( (int)( i*frac + 2 * frac / 3 ) );
+                        if (null == na) {
+                            error = "Unable to correctly interpret chapter data";
+                            return false;
+                        }
+                        transformer.transform( ps, (NativeArray) na);
+                        updateStatus( (int)( (i+1) * frac) );
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                updateStatus(100);
                 return true;
             }
 
@@ -355,14 +366,14 @@ public class TaricChooser extends JDialog {
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
         panel3.add(label3, gbc);
         final JLabel label4 = new JLabel();
         label4.setText("Chapter");
         gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 2;
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.anchor = GridBagConstraints.NORTHWEST;
         panel3.add(label4, gbc);
         retrieveButton = new JButton();
         retrieveButton.setText("Retrieve");
@@ -370,23 +381,34 @@ public class TaricChooser extends JDialog {
         gbc.gridx = 8;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.NORTHEAST;
         panel3.add(retrieveButton, gbc);
-        sectionCombo = new JComboBox();
+        sectionList = new JList();
+        sectionList.setVisibleRowCount(-1);
+        sectionList.setLayoutOrientation( JList.VERTICAL );
+        JScrollPane sectionPane = new JScrollPane(sectionList);
+        sectionPane.setPreferredSize(new Dimension(300, 120));
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 0;
         gbc.gridwidth = 5;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel3.add(sectionCombo, gbc);
-        chapterCombo = new JComboBox();
+        //sectionPane.add( sectionList );
+        panel3.add(sectionPane, gbc);
+        chapterList = new JList();
+        chapterList.setVisibleRowCount(-1);
+        chapterList.setLayoutOrientation( JList.VERTICAL );
+        JScrollPane chapterPane = new JScrollPane(chapterList);
+        chapterPane.setPreferredSize(new Dimension(300, 120));
         gbc = new GridBagConstraints();
         gbc.gridx = 2;
         gbc.gridy = 2;
         gbc.gridwidth = 5;
         gbc.anchor = GridBagConstraints.WEST;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        panel3.add(chapterCombo, gbc);
+        //chapterPane.add( chapterList );
+        panel3.add(chapterPane, gbc);
         final JLabel label5 = new JLabel();
         label5.setText("(YYYYmmdd)");
         gbc = new GridBagConstraints();
