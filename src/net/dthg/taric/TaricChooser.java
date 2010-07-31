@@ -79,11 +79,6 @@ public class TaricChooser extends JDialog {
                 }
             }
         });
-        dateEntryField.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                System.out.println(e.getID());
-            }
-        });
         retrieveButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 onRetrieve();
