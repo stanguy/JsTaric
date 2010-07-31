@@ -67,6 +67,13 @@ public class TaricChooser extends JDialog {
                 int ret = chooser.showSaveDialog(contentPane);
                 if (JFileChooser.APPROVE_OPTION == ret) {
                     outputFile = chooser.getSelectedFile();
+                    if( outputFile.exists() ) {
+                        ret = JOptionPane.showConfirmDialog( null, "Selected file already exists. Overwrite?" );
+                        if( ret != JOptionPane.OK_OPTION ) {
+                            outputFile = null;
+                            return;
+                        }
+                    }
                     filenameDisplay.setText(outputFile.getPath());
                     buttonOK.setEnabled(true);
                 }
