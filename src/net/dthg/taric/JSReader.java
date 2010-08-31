@@ -8,6 +8,7 @@ public class JSReader {
 
     public Object interpretAndFetch( String jscode, String variable_name ) {
         Context cx = Context.enter();
+        cx.setOptimizationLevel( -1 );
         try {
             Scriptable scope = cx.initStandardObjects();
             cx.evaluateString( scope, jscode, "<cmd>", 1, null );
