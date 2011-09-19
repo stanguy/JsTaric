@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<project name="jstaric" default="build" basedir=".">
+
+  <path id="all.classpath">
+    <fileset dir="lib" includes="*.jar"/>
+  </path>
+
+  <target name="build">
+    <mkdir dir="build/classes"/>
+    <javac srcdir="src"
+           destdir="build/classes"
+           classpathref="all.classpath">
+    </javac>
+  </target>
+
+  <target name="jar" depends="build">
+    <jar destfile="build/jstaric.jar" basedir="build/classes">
+      <manifest>
+        <attribute name="Main-Class"
+                   value="net.dthg.taric.Taric"/>
+        <attribute name="Class-Path"
+                   value="js.jar"/>
+      </manifest>
+    </jar>
+  </target>
+
+</project>
