@@ -462,7 +462,7 @@ public class TaricChooser extends JDialog {
             outputFile = chooser.getSelectedFile();
             
             String filename = outputFile.getName();
-            if ( ! filename.toLowerCase().endsWith( ".csv" ) ) {
+            if ( ! filename.contains( "." ) ) {
                 outputFile = new File( outputFile.getParentFile(), filename + ".csv" );
             }
             

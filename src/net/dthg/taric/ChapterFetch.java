@@ -19,6 +19,7 @@ public class ChapterFetch extends Fetcher {
           .append( '_' ).append( BASE_LANG )
           .append( '_' ).append( date )
           .append( '_' ).append( format.format( "%02d", chapter ) )
+          .append( '_' ).append( BASE_LANG )
           .append( ".js" );
         return sb.toString();
     }
