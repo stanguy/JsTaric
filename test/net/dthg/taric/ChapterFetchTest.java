@@ -4,10 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 
-import junit.framework.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 import static org.mockito.Mockito.*;
 
@@ -48,7 +48,7 @@ public class ChapterFetchTest {
         MockedChapterFetch fetcher = new MockedChapterFetch( "20100720", 3 );
         fetcher.setMock( conn );
         String str = fetcher.fetch( );
-        Assert.assertEquals( jscode + "\n", str );
+        assertEquals( jscode + "\n", str );
     }
 
 }

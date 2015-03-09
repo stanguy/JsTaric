@@ -15,7 +15,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TaricChooser extends JDialog {
-    private JPanel contentPane;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private JPanel contentPane;
     private JButton buttonOK;
     private JButton buttonCancel;
     private JTextField dateEntryField;
@@ -23,8 +27,8 @@ public class TaricChooser extends JDialog {
     private JLabel filenameDisplay;
     private JProgressBar progressBar1;
     private JButton retrieveButton;
-    private JList sectionList;
-    private JList chapterList;
+    private JList<Section> sectionList;
+    private JList<Chapter> chapterList;
     private File outputFile;
     private String error;
 
@@ -79,11 +83,10 @@ public class TaricChooser extends JDialog {
     }
 
     private void onSelectSection() {
-        Object[] o = sectionList.getSelectedValues();
-        if (null != o && o.length > 0 ) {
+        java.util.List<Section> list_of_sections = sectionList.getSelectedValuesList();
+        if (null != list_of_sections && list_of_sections.size() > 0 ) {
             Vector<Chapter> chapters = new Vector<Chapter>();
-            for ( int i = 0; i < o.length; i++ ) {
-                Section s = (Section) o[i];
+            for ( Section s : list_of_sections ) {
                 chapters.addAll( s.getChapters() );
             }
             chapterList.setListData( chapters );
@@ -117,7 +120,7 @@ public class TaricChooser extends JDialog {
                     return false;
                 }
                 java.util.List<Section> list = transformer.transform((NativeArray) na);
-                sectionList.setListData( list.toArray() );
+                sectionList.setListData( list.toArray( new Section[0] ) );
                 return true;
             }
 
@@ -153,13 +156,14 @@ public class TaricChooser extends JDialog {
             JOptionPane.showMessageDialog(this, "Incorrect date format (YYYYmmdd expected)", "Taric error", JOptionPane.ERROR_MESSAGE);
             return;
         }
-        Object[] selected_chapters = chapterList.getSelectedValues();
-        if( null == selected_chapters || 0 == selected_chapters.length ) {
+        java.util.List<Chapter> selected_chapters = chapterList.getSelectedValuesList();
+        if( null == selected_chapters || 0 == selected_chapters.size() ) {
             return;
         }
-        final int[] chapter = new int[selected_chapters.length];
-        for ( int i = 0; i < chapter.length; i++ ) {
-            chapter[i] = ((Chapter)selected_chapters[i]).getCode();
+        final int[] chapter = new int[selected_chapters.size()];
+        int i = 0;
+        for ( Chapter c : selected_chapters ) {
+            chapter[i++] = c.getCode();
         }
         SwingWorker<Boolean, Object> worker = new SwingWorker<Boolean, Object>() {
             public Boolean doInBackground() {
@@ -371,7 +375,7 @@ public class TaricChooser extends JDialog {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.NORTHEAST;
         panel3.add(retrieveButton, gbc);
-        sectionList = new JList();
+        sectionList = new JList<Section>();
         sectionList.setVisibleRowCount(-1);
         sectionList.setLayoutOrientation( JList.VERTICAL );
         JScrollPane sectionPane = new JScrollPane(sectionList);
@@ -384,7 +388,7 @@ public class TaricChooser extends JDialog {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         //sectionPane.add( sectionList );
         panel3.add(sectionPane, gbc);
-        chapterList = new JList();
+        chapterList = new JList<Chapter>();
         chapterList.setVisibleRowCount(-1);
         chapterList.setLayoutOrientation( JList.VERTICAL );
         JScrollPane chapterPane = new JScrollPane(chapterList);

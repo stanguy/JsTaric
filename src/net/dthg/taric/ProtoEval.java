@@ -42,6 +42,7 @@ public class ProtoEval {
             while ((str = in.readLine()) != null) {
                 s += str;
             }
+            in.close();
 
             // Now evaluate the string we've collected. We'll ignore the result.
             cx.evaluateString( scope, s, "<cmd>", 1, null );

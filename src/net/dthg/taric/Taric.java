@@ -12,10 +12,12 @@ public class Taric {
         Formatter formatter = new Formatter();
         Calendar rightNow = Calendar.getInstance();
         
-        return formatter.format( "%d%02d%02d", 
+        String output = formatter.format( "%d%02d%02d", 
                 rightNow.get( Calendar.YEAR ),
                 rightNow.get( Calendar.MONTH ) + 1,
                 rightNow.get( Calendar.DAY_OF_MONTH ) ).toString();
+        formatter.close();
+        return output;
     }
     
     protected void run() {

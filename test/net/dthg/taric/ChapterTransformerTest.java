@@ -1,7 +1,7 @@
 package net.dthg.taric;
 
 
-import junit.framework.Assert;
+import static org.junit.Assert.*;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +19,7 @@ public class ChapterTransformerTest {
     @Test
     public void none() {
         String r = ct.transform( null );
-        Assert.assertEquals( "", r );
+        assertEquals( "", r );
     }
     
     @Test
@@ -29,7 +29,7 @@ public class ChapterTransformerTest {
         NativeArray na_wrap = new NativeArray( 1 );
         na_wrap.put(  0, na_wrap, na );
         String r = ct.transform( na_wrap );
-        Assert.assertEquals( "01000000;LIVE ANIMALS\n", r );
+        assertEquals( "01000000;LIVE ANIMALS\n", r );
     }
     
     @Test
@@ -52,7 +52,7 @@ public class ChapterTransformerTest {
         na_wrap.put(  0, na_wrap, na );
         
         String r = ct.transform( na_wrap );
-        Assert.assertEquals( "01000000;LIVE ANIMALS\n0101000000;Live horses, asses, mules and hinnies\n", r );
+        assertEquals( "01000000;LIVE ANIMALS\n0101000000;Live horses, asses, mules and hinnies\n", r );
     }
     
 }

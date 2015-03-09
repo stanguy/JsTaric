@@ -4,8 +4,6 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import junit.framework.Assert;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mozilla.javascript.NativeArray;
@@ -22,7 +20,7 @@ public class SectionTransformerTest {
     @Test
     public void shouldReturnNullIfNullProvided() {
         Object o = st.transform( null );
-        Assert.assertNull( o );
+        assertNull( o );
     }
     
     @Test
@@ -32,10 +30,10 @@ public class SectionTransformerTest {
         NativeArray na_wrap = new NativeArray( 1 );
         na_wrap.put(  0, na_wrap, na );
         List<Section> l = st.transform( na_wrap );
-        Assert.assertNotNull( l );
-        Assert.assertEquals( 1, l.size() );
-        Assert.assertEquals( data[1] + " " + data[2], l.get( 0 ).getTitle() );
-        Assert.assertNull( l.get( 0 ).getChapters() );
+        assertNotNull( l );
+        assertEquals( 1, l.size() );
+        assertEquals( data[1] + " " + data[2], l.get( 0 ).getTitle() );
+        assertNull( l.get( 0 ).getChapters() );
     }
 
     @Test
@@ -45,12 +43,12 @@ public class SectionTransformerTest {
         NativeArray na_wrap = new NativeArray( 1 );
         na_wrap.put(  0, na_wrap, na );
         List<Section> l = st.transform( na_wrap );
-        Assert.assertNotNull( l );
-        Assert.assertEquals( 1, l.size() );
+        assertNotNull( l );
+        assertEquals( 1, l.size() );
         String title = (data[1] + " " + data[2]).substring( 0, 40 ) + "...";
         
-        Assert.assertEquals( title, l.get( 0 ).getTitle() );
-        Assert.assertNull( l.get( 0 ).getChapters() );
+        assertEquals( title, l.get( 0 ).getTitle() );
+        assertNull( l.get( 0 ).getChapters() );
     }
     
     
@@ -75,13 +73,13 @@ public class SectionTransformerTest {
         na_wrap.put(  0, na_wrap, na );
         
         List<Section> l = st.transform( na_wrap );
-        Assert.assertNotNull( l );
-        Assert.assertEquals( 1, l.size() );
-        Assert.assertEquals( data[1] + " " + data[2], l.get( 0 ).getTitle() );
-        Assert.assertEquals( 1, l.get( 0 ).getChapters().size() );
+        assertNotNull( l );
+        assertEquals( 1, l.size() );
+        assertEquals( data[1] + " " + data[2], l.get( 0 ).getTitle() );
+        assertEquals( 1, l.get( 0 ).getChapters().size() );
         Chapter first_chapter = l.get( 0 ).getChapters().get( 0 );
-        Assert.assertEquals( data_chapter[1] + " " + data_chapter[2], first_chapter.getTitle() );
-        Assert.assertEquals( 1, first_chapter.getCode() );
+        assertEquals( data_chapter[1] + " " + data_chapter[2], first_chapter.getTitle() );
+        assertEquals( 1, first_chapter.getCode() );
     }
 
 }
